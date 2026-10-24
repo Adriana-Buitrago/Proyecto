@@ -1,5 +1,11 @@
-
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Image,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -39,21 +45,29 @@ export default function EventsScreen() {
               })
             }
           >
-            <View style={styles.eventHeader}>
-              <Text style={styles.eventNumber}>
-                EVENTO {String(index + 1).padStart(2, '0')}
-              </Text>
-              <Text style={styles.arrow}>↗</Text>
-            </View>
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.eventImage}
+              resizeMode="cover"
+              accessibilityLabel={`Imagen de ${item.name}`}
+            />
 
-            <Text style={styles.name}>{item.name}</Text>
+            <View style={styles.cardContent}>
+              <View style={styles.eventHeader}>
+                <Text style={styles.eventNumber}>
+                  EVENTO {String(index + 1).padStart(2, '0')}
+                </Text>
+                <Text style={styles.arrow}>↗</Text>
+              </View>
 
-            <Text style={styles.info}>📅  {item.date}</Text>
-            <Text style={styles.info}>📍  {item.location}</Text>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.info}>📅  {item.date}</Text>
+              <Text style={styles.info}>📍  {item.location}</Text>
 
-            <View style={styles.footer}>
-              <Text style={styles.link}>Ver detalles</Text>
-              <Text style={styles.link}>→</Text>
+              <View style={styles.footer}>
+                <Text style={styles.link}>Ver detalles</Text>
+                <Text style={styles.link}>→</Text>
+              </View>
             </View>
           </Pressable>
         )}
@@ -97,10 +111,18 @@ const styles = StyleSheet.create({
     borderColor: '#352650',
     borderWidth: 1,
     borderRadius: 18,
-    padding: 17,
+    overflow: 'hidden',
   },
   cardPressed: {
     opacity: 0.8,
+  },
+  eventImage: {
+    width: '100%',
+    height: 190,
+    backgroundColor: '#292044',
+  },
+  cardContent: {
+    padding: 17,
   },
   eventHeader: {
     flexDirection: 'row',

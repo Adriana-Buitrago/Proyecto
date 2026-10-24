@@ -1,5 +1,12 @@
-
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  TextInput,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -13,20 +20,64 @@ type NavigationProp = NativeStackNavigationProp<
 
 export default function EquipmentScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const [search, setSearch] = useState('');
+
+  const filteredEquipment = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+
+    if (!query) return equipment;
+
+    return equipment.filter((item) =>
+      [
+        item.name,
+        item.category,
+        item.brand,
+        item.status,
+        item.description,
+      ].some((value) => value.toLocaleLowerCase().includes(query)),
+    );
+  }, [search]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
-      <Text style={styles.heading}>Equipos disponibles</Text>
+      <Text style={styles.heading}>Catálogo de equipos</Text>
       <Text style={styles.subtitle}>
         Sonido e iluminación para tus eventos
       </Text>
 
+      <TextInput
+        style={styles.searchInput}
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Buscar por nombre, marca o categoría..."
+        placeholderTextColor="#8E87A6"
+        autoCapitalize="none"
+        returnKeyType="search"
+        accessibilityLabel="Buscar equipos"
+      />
+
+      <Text style={styles.resultCount}>
+        {filteredEquipment.length}{' '}
+        {filteredEquipment.length === 1
+          ? 'equipo encontrado'
+          : 'equipos encontrados'}
+      </Text>
+
       <FlatList
-        data={equipment}
+        data={filteredEquipment}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>No encontramos equipos</Text>
+            <Text style={styles.info}>
+              Prueba con otro nombre, marca, categoría o estado.
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable
             style={({ pressed }) => [
@@ -46,12 +97,19 @@ export default function EquipmentScreen() {
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.info}>{item.description}</Text>
 
+            <View style={styles.metadata}>
+              <Text style={styles.metadataText}>Marca: {item.brand}</Text>
+              <Text style={styles.metadataText}>Cantidad: {item.quantity}</Text>
+              <Text style={styles.statusText}>Estado: {item.status}</Text>
+            </View>
+
             <View style={styles.footer}>
               <View>
-                <Text style={styles.priceLabel}>Precio por día</Text>
+                <Text style={styles.priceLabel}>Alquiler por día</Text>
                 <Text style={styles.price}>
                   ${item.pricePerDay.toLocaleString('es-CO')}
                 </Text>
+                <Text style={styles.currency}>COP · Tarifa ilustrativa</Text>
               </View>
 
               <Text style={styles.link}>Ver detalles →</Text>
@@ -86,7 +144,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#B8B3CC',
     marginTop: 6,
-    marginBottom: 22,
+    marginBottom: 18,
+  },
+  searchInput: {
+    backgroundColor: '#17112B',
+    borderColor: '#352650',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  resultCount: {
+    color: '#22D3EE',
+    fontSize: 12,
+    marginBottom: 12,
+    fontWeight: '600',
   },
   list: {
     gap: 14,
@@ -126,6 +201,19 @@ const styles = StyleSheet.create({
     color: '#B8B3CC',
     marginTop: 8,
   },
+  metadata: {
+    marginTop: 12,
+    gap: 5,
+  },
+  metadataText: {
+    color: '#B8B3CC',
+    fontSize: 13,
+  },
+  statusText: {
+    color: '#22D3EE',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   footer: {
     marginTop: 18,
     paddingTop: 14,
@@ -146,9 +234,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 4,
   },
+  currency: {
+    color: '#8E87A6',
+    fontSize: 10,
+    marginTop: 3,
+  },
   link: {
     color: '#C4B5FD',
     fontSize: 13,
+    fontWeight: 'bold',
+  },
+  empty: {
+    backgroundColor: '#17112B',
+    borderColor: '#352650',
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 20,
+  },
+  emptyTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
     fontWeight: 'bold',
   },
 });

@@ -1,5 +1,4 @@
-
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 
@@ -26,9 +25,22 @@ export default function EventDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
       <Text style={styles.section}>DETALLE DEL EVENTO</Text>
+
+      <Image
+        source={{ uri: event.imageUrl }}
+        style={styles.eventImage}
+        resizeMode="cover"
+        accessibilityLabel={`Imagen de ${event.name}`}
+      />
+
+      <Text style={styles.category}>{event.eventType}</Text>
       <Text style={styles.title}>{event.name}</Text>
 
       <View style={styles.card}>
@@ -42,6 +54,13 @@ export default function EventDetailScreen() {
 
         <View style={styles.divider} />
 
+        <Text style={styles.label}>Duración</Text>
+        <Text style={styles.value}>
+          {event.durationHours} horas
+        </Text>
+
+        <View style={styles.divider} />
+
         <Text style={styles.label}>Descripción</Text>
         <Text style={styles.value}>{event.description}</Text>
       </View>
@@ -50,15 +69,18 @@ export default function EventDetailScreen() {
         Consulta la disponibilidad de nuestros servicios de sonido e
         iluminación para tu celebración.
       </Text>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: '#0B0718',
+  },
+  container: {
     padding: 20,
+    paddingBottom: 32,
   },
   eyebrow: {
     color: '#22D3EE',
@@ -72,13 +94,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1,
     marginTop: 22,
+    marginBottom: 14,
+  },
+  eventImage: {
+    width: '100%',
+    height: 230,
+    borderRadius: 18,
+    backgroundColor: '#292044',
+  },
+  category: {
+    color: '#22D3EE',
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginTop: 18,
   },
   title: {
     color: '#FFFFFF',
     fontSize: 27,
     fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 22,
+    marginTop: 8,
+    marginBottom: 20,
   },
   card: {
     backgroundColor: '#17112B',

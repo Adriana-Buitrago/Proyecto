@@ -1,5 +1,4 @@
-
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 
@@ -28,21 +27,41 @@ export default function EquipmentDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
       <Text style={styles.section}>DETALLE DEL EQUIPO</Text>
+
+      <View style={styles.categoryBadge}>
+        <Text style={styles.categoryText}>{item.category}</Text>
+      </View>
+
       <Text style={styles.title}>{item.name}</Text>
 
       <View style={styles.card}>
-        <Text style={styles.label}>Categoría</Text>
-        <Text style={styles.value}>{item.category}</Text>
+        <Text style={styles.label}>Marca</Text>
+        <Text style={styles.value}>{item.brand}</Text>
 
         <View style={styles.divider} />
 
-        <Text style={styles.label}>Precio por día</Text>
+        <Text style={styles.label}>Cantidad en inventario</Text>
+        <Text style={styles.value}>{item.quantity} unidades</Text>
+
+        <View style={styles.divider} />
+
+        <Text style={styles.label}>Estado</Text>
+        <Text style={styles.status}>{item.status}</Text>
+
+        <View style={styles.divider} />
+
+        <Text style={styles.label}>Alquiler por día</Text>
         <Text style={styles.price}>
           ${item.pricePerDay.toLocaleString('es-CO')} COP
         </Text>
+        <Text style={styles.disclaimer}>Tarifa ficticia para demostración.</Text>
 
         <View style={styles.divider} />
 
@@ -53,15 +72,18 @@ export default function EquipmentDetailScreen() {
       <Text style={styles.note}>
         Consulta la disponibilidad del equipo para la fecha de tu evento.
       </Text>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: '#0B0718',
+  },
+  container: {
     padding: 20,
+    paddingBottom: 32,
   },
   eyebrow: {
     color: '#22D3EE',
@@ -75,12 +97,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1,
     marginTop: 22,
+    marginBottom: 16,
+  },
+  categoryBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#292044',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  categoryText: {
+    color: '#22D3EE',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   title: {
     color: '#FFFFFF',
     fontSize: 27,
     fontWeight: 'bold',
-    marginTop: 10,
+    marginTop: 12,
     marginBottom: 22,
   },
   card: {
@@ -102,10 +137,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+  status: {
+    color: '#22D3EE',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   price: {
     color: '#22D3EE',
     fontSize: 22,
     fontWeight: 'bold',
+  },
+  disclaimer: {
+    color: '#8E87A6',
+    fontSize: 11,
+    marginTop: 2,
   },
   divider: {
     height: 1,
