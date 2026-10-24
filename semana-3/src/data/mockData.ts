@@ -1,5 +1,3 @@
-
-
 export type EventItem = {
   id: string;
   name: string;
@@ -18,25 +16,36 @@ export type EquipmentItem = {
 
 export const events: EventItem[] = [
   {
-    id: 'event-1',
-    name: 'Boda elegante',
-    date: '15 de noviembre de 2026',
-    location: 'Salón Imperial',
-    description: 'Sonido profesional e iluminación ambiental para una celebración inolvidable.',
+    id: 'event-001',
+    name: 'Boda de Laura y Andrés',
+    date: '14 de noviembre de 2026',
+    location: 'Hacienda Los Arrayanes, Bogotá',
+    description:
+      'DJ, sonido profesional, luces ambientales y pista de baile.',
   },
   {
-    id: 'event-2',
-    name: 'Fiesta empresarial',
-    date: '22 de noviembre de 2026',
-    location: 'Centro de Eventos',
-    description: 'Música, sonido e iluminación para eventos corporativos.',
+    id: 'event-002',
+    name: 'Cumpleaños de Santiago',
+    date: '21 de noviembre de 2026',
+    location: 'Salón Mirador, Chía',
+    description:
+      'Música crossover, cabina DJ y sistema de sonido para baile.',
   },
   {
-    id: 'event-3',
-    name: 'Cumpleaños musical',
-    date: '5 de diciembre de 2026',
-    location: 'Club Social',
-    description: 'Una experiencia musical con DJ y luces de colores.',
+    id: 'event-003',
+    name: 'Fiesta empresarial Nova',
+    date: '4 de diciembre de 2026',
+    location: 'Centro de Convenciones, Bogotá',
+    description:
+      'Sonido para discursos, micrófonos inalámbricos e iluminación.',
+  },
+  {
+    id: 'event-004',
+    name: 'Quinceañera de Valentina',
+    date: '12 de diciembre de 2026',
+    location: 'Club Social La Colina, Bogotá',
+    description:
+      'DJ, luces móviles, máquina de humo y sonido para pista.',
   },
 ];
 
@@ -53,7 +62,8 @@ export const equipment: EquipmentItem[] = [
     name: 'Luces LED',
     category: 'Iluminación',
     pricePerDay: 120000,
-    description: 'Iluminación LED multicolor para pistas de baile.',
+    description:
+      'Iluminación LED multicolor para pistas de baile.',
   },
   {
     id: 'equipment-3',
