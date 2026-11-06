@@ -1,3 +1,4 @@
+
 import {
   View,
   Text,
@@ -6,6 +7,7 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -21,7 +23,10 @@ export default function EventsScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['left', 'right']}
+    >
       <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
       <Text style={styles.heading}>Próximos eventos</Text>
       <Text style={styles.subtitle}>
@@ -72,7 +77,7 @@ export default function EventsScreen() {
           </Pressable>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

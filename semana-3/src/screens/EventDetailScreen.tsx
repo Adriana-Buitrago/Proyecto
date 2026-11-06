@@ -1,4 +1,6 @@
+
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 
@@ -18,58 +20,68 @@ export default function EventDetailScreen() {
 
   if (!event) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Evento no encontrado</Text>
-      </View>
+      <SafeAreaView
+        style={styles.screen}
+        edges={['left', 'right', 'bottom']}
+      >
+        <View style={styles.container}>
+          <Text style={styles.title}>Evento no encontrado</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
+    <SafeAreaView
       style={styles.screen}
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
+      edges={['left', 'right', 'bottom']}
     >
-      <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
-      <Text style={styles.section}>DETALLE DEL EVENTO</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
+        <Text style={styles.section}>DETALLE DEL EVENTO</Text>
 
-      <Image
-        source={{ uri: event.imageUrl }}
-        style={styles.eventImage}
-        resizeMode="cover"
-        accessibilityLabel={`Imagen de ${event.name}`}
-      />
+        <Image
+          source={{ uri: event.imageUrl }}
+          style={styles.eventImage}
+          resizeMode="cover"
+          accessibilityLabel={`Imagen de ${event.name}`}
+        />
 
-      <Text style={styles.category}>{event.eventType}</Text>
-      <Text style={styles.title}>{event.name}</Text>
+        <Text style={styles.category}>{event.eventType}</Text>
+        <Text style={styles.title}>{event.name}</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Fecha</Text>
-        <Text style={styles.value}>{event.date}</Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>Fecha</Text>
+          <Text style={styles.value}>{event.date}</Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.label}>Lugar</Text>
-        <Text style={styles.value}>{event.location}</Text>
+          <Text style={styles.label}>Lugar</Text>
+          <Text style={styles.value}>{event.location}</Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.label}>Duración</Text>
-        <Text style={styles.value}>
-          {event.durationHours} horas
+          <Text style={styles.label}>Duración</Text>
+          <Text style={styles.value}>
+            {event.durationHours} horas
+          </Text>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.label}>Descripción</Text>
+          <Text style={styles.value}>{event.description}</Text>
+        </View>
+
+        <Text style={styles.note}>
+          Consulta la disponibilidad de nuestros servicios de sonido e
+          iluminación para tu celebración.
         </Text>
-
-        <View style={styles.divider} />
-
-        <Text style={styles.label}>Descripción</Text>
-        <Text style={styles.value}>{event.description}</Text>
-      </View>
-
-      <Text style={styles.note}>
-        Consulta la disponibilidad de nuestros servicios de sonido e
-        iluminación para tu celebración.
-      </Text>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -77,6 +89,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#0B0718',
+  },
+  scroll: {
+    flex: 1,
   },
   container: {
     padding: 20,

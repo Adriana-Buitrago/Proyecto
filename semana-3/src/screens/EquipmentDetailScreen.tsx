@@ -1,4 +1,6 @@
+
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 
@@ -20,59 +22,71 @@ export default function EquipmentDetailScreen() {
 
   if (!item) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Equipo no encontrado</Text>
-      </View>
+      <SafeAreaView
+        style={styles.screen}
+        edges={['left', 'right', 'bottom']}
+      >
+        <View style={styles.container}>
+          <Text style={styles.title}>Equipo no encontrado</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
+    <SafeAreaView
       style={styles.screen}
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
+      edges={['left', 'right', 'bottom']}
     >
-      <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
-      <Text style={styles.section}>DETALLE DEL EQUIPO</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
+        <Text style={styles.section}>DETALLE DEL EQUIPO</Text>
 
-      <View style={styles.categoryBadge}>
-        <Text style={styles.categoryText}>{item.category}</Text>
-      </View>
+        <View style={styles.categoryBadge}>
+          <Text style={styles.categoryText}>{item.category}</Text>
+        </View>
 
-      <Text style={styles.title}>{item.name}</Text>
+        <Text style={styles.title}>{item.name}</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Marca</Text>
-        <Text style={styles.value}>{item.brand}</Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>Marca</Text>
+          <Text style={styles.value}>{item.brand}</Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.label}>Cantidad en inventario</Text>
-        <Text style={styles.value}>{item.quantity} unidades</Text>
+          <Text style={styles.label}>Cantidad en inventario</Text>
+          <Text style={styles.value}>{item.quantity} unidades</Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.label}>Estado</Text>
-        <Text style={styles.status}>{item.status}</Text>
+          <Text style={styles.label}>Estado</Text>
+          <Text style={styles.status}>{item.status}</Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.label}>Alquiler por día</Text>
-        <Text style={styles.price}>
-          ${item.pricePerDay.toLocaleString('es-CO')} COP
+          <Text style={styles.label}>Alquiler por día</Text>
+          <Text style={styles.price}>
+            ${item.pricePerDay.toLocaleString('es-CO')} COP
+          </Text>
+          <Text style={styles.disclaimer}>
+            Tarifa ficticia para demostración.
+          </Text>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.label}>Descripción</Text>
+          <Text style={styles.value}>{item.description}</Text>
+        </View>
+
+        <Text style={styles.note}>
+          Consulta la disponibilidad del equipo para la fecha de tu evento.
         </Text>
-        <Text style={styles.disclaimer}>Tarifa ficticia para demostración.</Text>
-
-        <View style={styles.divider} />
-
-        <Text style={styles.label}>Descripción</Text>
-        <Text style={styles.value}>{item.description}</Text>
-      </View>
-
-      <Text style={styles.note}>
-        Consulta la disponibilidad del equipo para la fecha de tu evento.
-      </Text>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -80,6 +94,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#0B0718',
+  },
+  scroll: {
+    flex: 1,
   },
   container: {
     padding: 20,

@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from 'react';
 import {
   View,
@@ -7,6 +8,7 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -39,7 +41,10 @@ export default function EquipmentScreen() {
   }, [search]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['left', 'right']}
+    >
       <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
       <Text style={styles.heading}>Catálogo de equipos</Text>
       <Text style={styles.subtitle}>
@@ -99,7 +104,9 @@ export default function EquipmentScreen() {
 
             <View style={styles.metadata}>
               <Text style={styles.metadataText}>Marca: {item.brand}</Text>
-              <Text style={styles.metadataText}>Cantidad: {item.quantity}</Text>
+              <Text style={styles.metadataText}>
+                Cantidad: {item.quantity}
+              </Text>
               <Text style={styles.statusText}>Estado: {item.status}</Text>
             </View>
 
@@ -109,7 +116,9 @@ export default function EquipmentScreen() {
                 <Text style={styles.price}>
                   ${item.pricePerDay.toLocaleString('es-CO')}
                 </Text>
-                <Text style={styles.currency}>COP · Tarifa ilustrativa</Text>
+                <Text style={styles.currency}>
+                  COP · Tarifa ilustrativa
+                </Text>
               </View>
 
               <Text style={styles.link}>Ver detalles →</Text>
@@ -117,7 +126,7 @@ export default function EquipmentScreen() {
           </Pressable>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
