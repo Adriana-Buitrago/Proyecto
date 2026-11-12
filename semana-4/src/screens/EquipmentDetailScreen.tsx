@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -23,13 +22,16 @@ export default function EquipmentDetailScreen() {
   const route = useRoute<EquipmentDetailRouteProp>();
   const { equipmentId } = route.params;
 
+  const addItem = useSavedStore((state) => state.addItem);
+  const removeItem = useSavedStore((state) => state.removeItem);
+
+  const saved = useSavedStore((state) =>
+    state.savedItems.some((item) => item.id === equipmentId)
+  );
+
   const item = equipment.find(
     (equipmentItem) => equipmentItem.id === equipmentId,
   );
-
-  const addItem = useSavedStore((state) => state.addItem);
-  const removeItem = useSavedStore((state) => state.removeItem);
-  const isItemSaved = useSavedStore((state) => state.isItemSaved);
 
   if (!item) {
     return (
@@ -43,8 +45,6 @@ export default function EquipmentDetailScreen() {
       </SafeAreaView>
     );
   }
-
-  const saved = isItemSaved(item.id);
 
   const handleSave = () => {
     if (saved) {

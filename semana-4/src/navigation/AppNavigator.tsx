@@ -15,7 +15,7 @@ import type { RootStackParamList } from '../types/navigation';
 
 type TabParamList = {
   Events: undefined;
-  Home: undefined;
+  Equipment: undefined;
   Saved: undefined;
 };
 
@@ -41,7 +41,7 @@ function MainTabs() {
 
           if (route.name === 'Events') {
             iconName = 'calendar-outline';
-          } else if (route.name === 'Home') {
+          } else if (route.name === 'Equipment') {
             iconName = 'volume-high-outline';
           } else {
             iconName = 'bookmark-outline';
@@ -61,11 +61,11 @@ function MainTabs() {
       />
 
       <Tab.Screen
-        name="Home"
+        name="Equipment"
         component={EquipmentScreen}
         options={{
           title: 'Equipos',
-          tabBarLabel: 'Inicio',
+          tabBarLabel: 'Equipos',
         }}
       />
 

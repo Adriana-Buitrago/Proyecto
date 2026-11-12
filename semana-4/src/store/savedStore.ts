@@ -1,14 +1,13 @@
 import { create } from 'zustand';
-import { EquipmentItem } from '../data/mockData';
+import type { EquipmentItem } from '../data/mockData';
 
 interface SavedState {
   savedItems: EquipmentItem[];
   addItem: (item: EquipmentItem) => void;
   removeItem: (id: string) => void;
-  isItemSaved: (id: string) => boolean;
 }
 
-export const useSavedStore = create<SavedState>((set, get) => ({
+export const useSavedStore = create<SavedState>((set) => ({
   savedItems: [],
 
   addItem: (item) =>
@@ -26,7 +25,4 @@ export const useSavedStore = create<SavedState>((set, get) => ({
         (item) => item.id !== id
       ),
     })),
-
-  isItemSaved: (id) =>
-    get().savedItems.some((item) => item.id === id),
 }));
