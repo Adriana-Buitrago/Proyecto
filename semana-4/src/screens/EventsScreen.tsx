@@ -1,4 +1,4 @@
-
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { events } from '../data/mockData';
+import { getEvents } from '../services/api';
+import type { EventItem } from '../data/mockData';
 import type { RootStackParamList } from '../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<
@@ -21,6 +22,25 @@ type NavigationProp = NativeStackNavigationProp<
 
 export default function EventsScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const data = await getEvents();
+        setEvents(data);
+      } catch (err) {
+        console.error('Error cargando eventos:', err);
+        setError('No fue posible cargar los eventos. Intenta nuevamente.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
 
   return (
     <SafeAreaView
@@ -33,8 +53,18 @@ export default function EventsScreen() {
         Sonido, música e iluminación para cada celebración
       </Text>
 
+      {loading && (
+        <Text style={styles.subtitle}>Cargando eventos...</Text>
+      )}
+
+      {!!error && (
+        <Text style={{ color: '#FF6B6B', marginBottom: 12 }}>
+          {error}
+        </Text>
+      )}
+
       <FlatList
-        data={events}
+        data={loading || error ? [] : events}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}

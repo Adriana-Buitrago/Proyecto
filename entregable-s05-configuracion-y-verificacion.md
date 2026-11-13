@@ -66,7 +66,7 @@ La migración se ejecutó durante la sesión de trabajo del 12 de noviembre de 2
 
 La base de datos local se conservó después de la migración, por lo que los datos de origen permanecieron disponibles durante las verificaciones. No se realizó una interrupción del servicio local para ejecutar esta actividad.
 
-La migración y las consultas al destino fueron verificadas; no se registra todavía un cambio definitivo de la conexión principal de la aplicación hacia Render.
+La migración y las consultas al destino fueron verificadas. Posteriormente, se configuró el servicio público de Render para utilizar la base de datos alojada en la nube como conexión principal de la API. La aplicación móvil también quedó conectada a la API pública.
 
 ---
 
@@ -85,6 +85,8 @@ Los componentes implementados son:
 - Endpoints para consultar eventos y equipos.
 - Endpoint de salud para verificar la conexión con PostgreSQL.
 - Scripts de migración, verificación y pruebas.
+- Servicio web público desplegado en Render.
+- Aplicación móvil Expo integrada con los endpoints de eventos y equipos.
 
 ## 6.2. Configuración y variables de entorno
 
@@ -147,6 +149,26 @@ La comprobación de los contenedores mostró ambos servicios en estado `healthy`
 | GET | /api/equipment | Consulta los equipos |
 | GET | /api/cloud/events | Consulta los eventos alojados en Render |
 | GET | /api/cloud/equipment | Consulta los equipos alojados en Render |
+
+## 6.5.1. Despliegue público e integración móvil
+
+La API fue desplegada mediante un servicio web de Render, asociado al repositorio del proyecto y a la rama `semana-5`.
+
+**URL pública:** https://dj-sonido-luces-api.onrender.com
+
+En el servicio desplegado se configuraron las variables de entorno necesarias y las conexiones a PostgreSQL administrado en Render. La conexión principal `DATABASE_URL` utiliza la base de datos alojada en la nube.
+
+Se verificó el funcionamiento de los siguientes endpoints públicos:
+
+- `GET /api/health`: comprobación de disponibilidad y conexión con PostgreSQL.
+- `GET /api/events`: consulta de los 4 eventos.
+- `GET /api/equipment`: consulta de los 12 equipos.
+
+También se integró la aplicación móvil Expo con la API pública mediante `semana-4/src/services/api.ts`.
+
+Las pantallas `EventsScreen.tsx` y `EquipmentScreen.tsx` consultan los datos del backend, conservando el diseño, el buscador del catálogo y la navegación existente. Se añadieron estados de carga y manejo de errores.
+
+La integración se probó desde Expo Go y la comprobación de TypeScript mediante `pnpm exec tsc --noEmit` finalizó sin errores.
 
 ## 6.6. Pruebas funcionales
 
@@ -214,8 +236,11 @@ Esta estrategia es un procedimiento de reversión previsto; no se ha registrado 
 - [x] Migración de 16 registros ejecutada.
 - [x] Hashes SHA-256 comparados.
 - [x] Consultas posteriores a la migración en Render aprobadas.
-- [ ] Cambio definitivo de la conexión principal de la aplicación hacia Render.
-- [ ] Despliegue de la API en un entorno público de producción.
+- [x] API desplegada en un servicio público de Render.
+- [x] Conexión principal del servicio desplegado configurada hacia PostgreSQL en Render.
+- [x] Endpoints públicos de eventos y equipos comprobados.
+- [x] Aplicación móvil integrada con la API pública.
+- [x] Comprobación de TypeScript sin errores.
 
 ## 6.11. Conclusión
 
@@ -225,4 +250,4 @@ Se configuraron variables de entorno, validaciones de inicio, comprobaciones de 
 
 Las pruebas funcionales, el smoke test y las consultas posteriores a la migración finalizaron satisfactoriamente.
 
-Quedan identificadas como actividades pendientes el cambio definitivo de la conexión principal hacia la base de datos en la nube y el despliegue público de la API. Por tanto, la migración de datos está completada y verificada, pero la puesta en producción integral todavía no se declara finalizada.
+La API se encuentra desplegada públicamente en Render y utiliza PostgreSQL alojado en la nube. La aplicación móvil Expo está integrada con los endpoints de eventos y equipos, y la comprobación de TypeScript finalizó sin errores. De esta manera, se completaron la migración, la verificación de integridad, el despliegue del backend y la integración móvil contemplados en este trabajo.

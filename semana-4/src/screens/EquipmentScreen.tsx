@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { equipment } from '../data/mockData';
+import { getEquipment } from '../services/api';
+import type { EquipmentItem } from '../data/mockData';
 import type { RootStackParamList } from '../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<
@@ -23,6 +24,25 @@ type NavigationProp = NativeStackNavigationProp<
 export default function EquipmentScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [search, setSearch] = useState('');
+  const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadEquipment = async () => {
+      try {
+        const data = await getEquipment();
+        setEquipment(data);
+      } catch (err) {
+        console.error('Error cargando equipos:', err);
+        setError('No fue posible cargar los equipos. Intenta nuevamente.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEquipment();
+  }, []);
 
   const filteredEquipment = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -51,6 +71,16 @@ export default function EquipmentScreen() {
         Sonido e iluminación para tus eventos
       </Text>
 
+      {loading && (
+        <Text style={styles.info}>Cargando equipos...</Text>
+      )}
+
+      {!!error && (
+        <Text style={{ color: '#FF6B6B', marginBottom: 12 }}>
+          {error}
+        </Text>
+      )}
+
       <TextInput
         style={styles.searchInput}
         value={search}
@@ -70,7 +100,7 @@ export default function EquipmentScreen() {
       </Text>
 
       <FlatList
-        data={filteredEquipment}
+        data={loading || error ? [] : filteredEquipment}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}

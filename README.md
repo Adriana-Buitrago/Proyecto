@@ -27,6 +27,7 @@ Aplicación de gestión para un servicio de DJ, sonido e iluminación. El modelo
 - PostgreSQL.
 - Docker y Docker Compose.
 - Render PostgreSQL.
+- Render Web Service para el despliegue público de la API.
 - SHA-256 para verificar la integridad de los datos.
 
 ---
@@ -129,6 +130,14 @@ Funcionalidades implementadas:
 - Verificación de disponibilidad de la API.
 - Comprobación de conexión con PostgreSQL.
 - Consulta de información almacenada en Render.
+
+### Despliegue público de la API
+
+La API se encuentra desplegada en Render:
+
+https://dj-sonido-luces-api.onrender.com
+
+La aplicación móvil utiliza esta dirección para consultar los eventos y equipos.
 
 ### Endpoints disponibles
 
@@ -251,6 +260,19 @@ Resultados obtenidos:
 
 **Resultado general: smoke test aprobado.**
 
+### Integración de la aplicación móvil con la API
+
+Se creó el servicio `semana-4/src/services/api.ts`, encargado de consultar la API y adaptar los nombres de los campos recibidos desde PostgreSQL a los tipos utilizados por TypeScript.
+
+Las pantallas `EventsScreen.tsx` y `EquipmentScreen.tsx` consultan los siguientes endpoints:
+
+- `/api/events`: carga los eventos desde el backend.
+- `/api/equipment`: carga los equipos desde el backend.
+
+Se conservaron el diseño de las pantallas, el buscador del catálogo, los estados de carga y error, y la navegación existente.
+
+La integración fue comprobada en Expo Go y mediante la ejecución de TypeScript con `pnpm exec tsc --noEmit`, sin errores.
+
 ### Migración de datos a Render
 
 Se realizó la migración de los datos iniciales desde PostgreSQL local hacia una base de datos PostgreSQL administrada en Render.
@@ -360,9 +382,9 @@ Proyecto-revision/
 # Decisiones de diseño
 
 - Se utiliza una identidad visual oscura con acentos violetas y cian, inspirada en escenarios y luces de DJ.
-- La aplicación móvil conserva sus datos locales de prueba mediante `mockData.ts`.
-- El backend dispone de una API y conexiones a PostgreSQL local y PostgreSQL en Render.
-- La conexión definitiva entre la aplicación móvil y el backend todavía no está integrada.
+- `mockData.ts` conserva los tipos de datos utilizados por la aplicación y los datos de prueba originales.
+- Las pantallas de eventos y equipos consultan la API pública desplegada en Render.
+- El servicio `src/services/api.ts` adapta los datos recibidos del backend a los tipos de TypeScript.
 - Los IDs son únicos y estables para que `FlatList` utilice `keyExtractor` correctamente.
 - Se mantiene una organización modular mediante carpetas para datos, navegación, pantallas, almacenamiento global y tipos.
 
@@ -373,4 +395,4 @@ El proyecto cuenta con cinco semanas de desarrollo:
 - **Semanas 1 a 4:** aplicación móvil con componentes, catálogo, navegación y gestión de estado global mediante Zustand.
 - **Semana 5:** backend con Node.js y Express, PostgreSQL, Docker, pruebas funcionales y migración de datos verificada en Render.
 
-La migración de datos está completada y verificada. Quedan pendientes la integración definitiva de la aplicación móvil con el backend, el cambio de la conexión principal hacia Render y el despliegue público de la API.
+La migración de datos está completada y verificada. La API está desplegada públicamente en Render y las pantallas de eventos y equipos de la aplicación móvil están integradas con ella.
