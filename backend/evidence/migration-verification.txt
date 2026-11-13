@@ -1,0 +1,32 @@
+PROYECTO: DJ Sonido y Luces
+ACTIVIDAD: Migración de PostgreSQL local a Render
+RESULTADO: Migración completada y verificada
+
+TABLA: events
+Registros en origen: 4
+Registros en destino: 4
+SHA-256 origen: d9d69344b0dba7301a6d365a96a2c2453bd8528a866a65b6d60f133248626206
+SHA-256 destino: d9d69344b0dba7301a6d365a96a2c2453bd8528a866a65b6d60f133248626206
+Resultado: COINCIDEN
+
+TABLA: equipment
+Registros en origen: 12
+Registros en destino: 12
+SHA-256 origen: 613dc4710a8c5df209bac6140d8326286127da3f8db7cac22d2620f6c7fc043c
+SHA-256 destino: 613dc4710a8c5df209bac6140d8326286127da3f8db7cac22d2620f6c7fc043c
+Resultado: COINCIDEN
+
+TOTAL DE REGISTROS MIGRADOS: 16
+RESULTADO GENERAL: MIGRACIÓN VERIFICADA
+
+PRUEBAS POSTERIORES A LA MIGRACIÓN
+
+API local consultando Render:
+GET /api/cloud/events
+Resultado: HTTP 200, 4 eventos recibidos.
+
+GET /api/cloud/equipment
+Resultado: HTTP 200, 12 equipos recibidos.
+
+Base de datos destino: Render PostgreSQL.
+Resultado general: PRUEBAS POSTERIORES EXITOSAS.

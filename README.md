@@ -1,10 +1,10 @@
-# DJ / Sonido y Luces — React Native (Expo + TypeScript)
+# DJ / Sonido y Luces
 
-Proyecto desarrollado durante las semanas 1, 2, 3 y 4 del bootcamp, utilizando React Native, Expo y TypeScript.
+Proyecto desarrollado durante las semanas 1, 2, 3, 4 y 5 del bootcamp. Incluye una aplicación móvil construida con React Native, Expo y TypeScript, y un backend desarrollado con Node.js, Express y PostgreSQL.
 
 ## Dominio
 
-Aplicación de gestión para un servicio de DJ, sonido e iluminación. El modelo contempla cuatro entidades:
+Aplicación de gestión para un servicio de DJ, sonido e iluminación. El modelo contempla cuatro entidades principales:
 
 - `events`: tipos de eventos y servicios ofrecidos.
 - `equipment`: equipos disponibles para eventos.
@@ -13,29 +13,25 @@ Aplicación de gestión para un servicio de DJ, sonido e iluminación. El modelo
 
 ## Tecnologías utilizadas
 
+### Aplicación móvil
 - React Native.
 - Expo.
 - TypeScript.
 - React Navigation 7.
-- Zustand para la gestión del estado global.
-- pnpm como gestor de paquetes.
+- Zustand.
+- pnpm.
 
-## Ejecutar el proyecto
+### Backend e infraestructura
+- Node.js.
+- Express.
+- PostgreSQL.
+- Docker y Docker Compose.
+- Render PostgreSQL.
+- SHA-256 para verificar la integridad de los datos.
 
-Entra a la carpeta de la semana que quieras probar y ejecuta:
+---
 
-```bash
-pnpm install
-pnpm start
-```
-
-Para iniciar Expo mediante Tunnel:
-
-```bash
-pnpm exec expo start --tunnel
-```
-
-Escanea el código QR con Expo Go compatible con el SDK configurado o abre un simulador.
+# Desarrollo por semanas
 
 ## Semana 1 — Componentes básicos
 
@@ -116,17 +112,265 @@ El archivo `src/store/savedStore.ts` contiene:
 - `removeItem`: elimina un equipo mediante su identificador.
 - `isItemSaved`: comprueba si un equipo ya se encuentra guardado.
 
-La información se administra en memoria mediante Zustand. No se ha implementado almacenamiento persistente ni conexión a una base de datos.
+La información se administra en memoria mediante Zustand. No se ha implementado almacenamiento persistente.
 
-## Decisiones de diseño
+## Semana 5 — Backend, Docker y migración a Render
+
+Durante esta semana se implementó una infraestructura backend para complementar el proyecto.
+
+### Backend
+
+Se desarrolló una API utilizando Node.js y Express, conectada a PostgreSQL.
+
+Funcionalidades implementadas:
+
+- Consulta de eventos.
+- Consulta de equipos.
+- Verificación de disponibilidad de la API.
+- Comprobación de conexión con PostgreSQL.
+- Consulta de información almacenada en Render.
+
+### Endpoints disponibles
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/` | Verifica la respuesta general de la API |
+| GET | `/api/health` | Comprueba la conexión con PostgreSQL principal |
+| GET | `/api/events` | Consulta los eventos |
+| GET | `/api/equipment` | Consulta los equipos |
+| GET | `/api/cloud/events` | Consulta los eventos en Render |
+| GET | `/api/cloud/equipment` | Consulta los equipos en Render |
+
+### Configuración con Docker
+
+Se configuraron dos servicios mediante `backend/deploy/compose.prod.yaml`:
+
+**PostgreSQL**
+- Imagen `postgres:17-alpine`.
+- Volumen persistente para los datos.
+- Healthcheck mediante `pg_isready`.
+- Política de reinicio `unless-stopped`.
+
+**API**
+- Construcción mediante Dockerfile.
+- Puerto 3000.
+- Dependencia de PostgreSQL con condición `service_healthy`.
+- Healthcheck mediante `/api/health`.
+- Política de reinicio `unless-stopped`.
+
+### Healthchecks y rotación de logs
+
+Se configuraron comprobaciones de salud para los servicios:
+
+- PostgreSQL utiliza `pg_isready`.
+- La API consulta `/api/health`.
+
+También se configuró la rotación de logs mediante el controlador `json-file`:
+
+- Tamaño máximo por archivo: 10 MB.
+- Cantidad máxima de archivos: 3.
+
+### Variables de entorno
+
+El archivo `backend/.env.example` contiene las variables necesarias para configurar el entorno:
+
+- `NODE_ENV`
+- `PORT`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL`
+- `CLOUD_DATABASE_URL`
+
+Las credenciales reales se mantienen en el archivo `.env`, excluido del control de versiones mediante `.gitignore`.
+
+### Instalación y ejecución del backend
+
+Ingresar a la carpeta del backend:
+
+```bash
+cd backend
+```
+
+Instalar dependencias:
+
+```bash
+pnpm install
+```
+
+Crear el archivo `.env` a partir de `.env.example` y configurar las credenciales correspondientes.
+
+Iniciar los servicios:
+
+```bash
+docker compose --env-file .env -f deploy/compose.prod.yaml up -d --build
+```
+
+Consultar el estado de los contenedores:
+
+```bash
+docker compose --env-file .env -f deploy/compose.prod.yaml ps
+```
+
+Detener los servicios:
+
+```bash
+docker compose --env-file .env -f deploy/compose.prod.yaml down
+```
+
+### Pruebas automatizadas
+
+Para ejecutar las pruebas:
+
+```bash
+pnpm test
+```
+
+Se verificaron los siguientes aspectos:
+
+1. La API responde correctamente.
+2. La API devuelve los 4 eventos.
+3. La API devuelve los 12 equipos.
+4. El endpoint de salud confirma la conexión con PostgreSQL.
+
+**Resultado: 4 pruebas aprobadas y 0 fallidas.**
+
+### Smoke test
+
+Para ejecutar las pruebas de disponibilidad:
+
+```bash
+sh scripts/smoke-test.sh
+```
+
+Resultados obtenidos:
+
+- API y PostgreSQL disponibles.
+- 4 eventos consultados.
+- 12 equipos consultados.
+
+**Resultado general: smoke test aprobado.**
+
+### Migración de datos a Render
+
+Se realizó la migración de los datos iniciales desde PostgreSQL local hacia una base de datos PostgreSQL administrada en Render.
+
+| Tabla | Registros en origen | Registros en destino |
+|---|---:|---:|
+| `events` | 4 | 4 |
+| `equipment` | 12 | 12 |
+| **Total** | **16** | **16** |
+
+La migración se ejecutó mediante:
+
+```text
+scripts/migrate-to-render.js
+```
+
+Posteriormente, se verificó la integridad de los datos mediante comparación de hashes SHA-256 utilizando:
+
+```text
+scripts/verify-migration.js
+```
+
+Los hashes de origen y destino coincidieron en ambas tablas.
+
+### Pruebas posteriores a la migración
+
+Se realizaron consultas desde la API hacia PostgreSQL en Render:
+
+| Endpoint | Resultado |
+|---|---|
+| `/api/cloud/events` | HTTP 200; 4 eventos recibidos |
+| `/api/cloud/equipment` | HTTP 200; 12 equipos recibidos |
+
+Las dos consultas finalizaron correctamente.
+
+La evidencia detallada de la migración se encuentra en:
+
+```text
+backend/evidence/migration-verification.txt
+```
+
+El documento de entrega de la Semana 5 se encuentra en:
+
+```text
+entregable-s05-configuracion-y-verificacion.md
+```
+
+### Diferencias entre los entornos
+
+| Característica | Origen local | Destino |
+|---|---|---|
+| Motor | PostgreSQL | PostgreSQL |
+| Versión | 17 | 18 |
+| Infraestructura | Docker local | Render |
+| Administración | Local | Servicio administrado |
+
+La migración de las tablas y sus registros se completó correctamente, y los hashes SHA-256 confirmaron la coincidencia de los datos.
+
+### Estrategia de reversión
+
+Se conservó la base de datos local original después de la migración.
+
+En caso de presentarse problemas con la base de datos en Render, se contempla:
+
+1. Mantener disponible la base de datos local.
+2. Restaurar la conexión principal mediante `DATABASE_URL`.
+3. Reiniciar el servicio de la API.
+4. Comprobar `/api/health`.
+5. Ejecutar nuevamente las pruebas funcionales y el smoke test.
+
+Esta estrategia está documentada como procedimiento previsto; no se ha registrado una ejecución de rollback.
+
+---
+
+# Estructura general del proyecto
+
+```text
+Proyecto-revision/
+├── semana-4/
+│   └── Aplicación móvil Expo y TypeScript
+├── backend/
+│   ├── database/
+│   │   ├── schema.sql
+│   │   └── seed.sql
+│   ├── deploy/
+│   │   └── compose.prod.yaml
+│   ├── evidence/
+│   │   └── migration-verification.txt
+│   ├── scripts/
+│   │   ├── migrate-to-render.js
+│   │   ├── smoke-test.sh
+│   │   └── verify-migration.js
+│   ├── src/
+│   │   ├── config/
+│   │   ├── routes/
+│   │   └── server.js
+│   ├── tests/
+│   │   └── api.test.js
+│   ├── .env.example
+│   ├── Dockerfile
+│   └── package.json
+├── entregable-s05-configuracion-y-verificacion.md
+├── .gitignore
+└── README.md
+```
+
+# Decisiones de diseño
 
 - Se utiliza una identidad visual oscura con acentos violetas y cian, inspirada en escenarios y luces de DJ.
-- Los datos son ficticios y locales (`mockData.ts`); no hay backend ni pagos reales.
+- La aplicación móvil conserva sus datos locales de prueba mediante `mockData.ts`.
+- El backend dispone de una API y conexiones a PostgreSQL local y PostgreSQL en Render.
+- La conexión definitiva entre la aplicación móvil y el backend todavía no está integrada.
 - Los IDs son únicos y estables para que `FlatList` utilice `keyExtractor` correctamente.
-- El código utiliza TypeScript explícito y evita el uso de `any`.
 - Se mantiene una organización modular mediante carpetas para datos, navegación, pantallas, almacenamiento global y tipos.
 
-## Estado del proyecto
+# Estado actual del proyecto
 
-El proyecto cuenta con cuatro semanas de desarrollo, incorporando progresivamente componentes de React Native, navegación entre pantallas y gestión de estado global con Zustand.
+El proyecto cuenta con cinco semanas de desarrollo:
 
+- **Semanas 1 a 4:** aplicación móvil con componentes, catálogo, navegación y gestión de estado global mediante Zustand.
+- **Semana 5:** backend con Node.js y Express, PostgreSQL, Docker, pruebas funcionales y migración de datos verificada en Render.
+
+La migración de datos está completada y verificada. Quedan pendientes la integración definitiva de la aplicación móvil con el backend, el cambio de la conexión principal hacia Render y el despliegue público de la API.
