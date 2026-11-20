@@ -1,4 +1,3 @@
-
 import type { EventItem, EquipmentItem } from '../data/mockData';
 
 const API_URL = 'http://192.168.2.24:3001';
@@ -25,6 +24,11 @@ type ApiEquipment = {
   description: string;
 };
 
+type EquipmentResponse = {
+  message: string;
+  data: ApiEquipment;
+};
+
 async function request<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${API_URL}${endpoint}`);
 
@@ -33,6 +37,19 @@ async function request<T>(endpoint: string): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+function mapEquipment(item: ApiEquipment): EquipmentItem {
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category,
+    brand: item.brand,
+    quantity: item.quantity,
+    status: item.status,
+    pricePerDay: item.price_per_day,
+    description: item.description,
+  };
 }
 
 export async function getEvents(): Promise<EventItem[]> {
@@ -53,25 +70,26 @@ export async function getEvents(): Promise<EventItem[]> {
 export async function getEquipment(): Promise<EquipmentItem[]> {
   const data = await request<ApiEquipment[]>('/api/equipment');
 
-  return data.map((item) => ({
-    id: item.id,
-    name: item.name,
-    category: item.category,
-    brand: item.brand,
-    quantity: item.quantity,
-    status: item.status,
-    pricePerDay: item.price_per_day,
-    description: item.description,
-  }));
+  return data.map(mapEquipment);
 }
 
+export async function getEquipmentById(
+  id: string
+): Promise<EquipmentItem> {
+  const equipment = await getEquipment();
+
+  const item = equipment.find(
+    (equipmentItem) => equipmentItem.id === id
+  );
+
+  if (!item) {
+    throw new Error('No se encontró el equipo solicitado.');
+  }
+
+  return item;
+}
 
 export type NewEquipment = Omit<EquipmentItem, 'id'>;
-
-type CreateEquipmentResponse = {
-  message: string;
-  data: ApiEquipment;
-};
 
 export async function createEquipment(
   equipment: NewEquipment
@@ -96,17 +114,36 @@ export async function createEquipment(
     throw new Error(`Error ${response.status} al registrar el equipo`);
   }
 
-  const result =
-    (await response.json()) as CreateEquipmentResponse;
+  const result = (await response.json()) as EquipmentResponse;
 
-  return {
-    id: result.data.id,
-    name: result.data.name,
-    category: result.data.category,
-    brand: result.data.brand,
-    quantity: result.data.quantity,
-    status: result.data.status,
-    pricePerDay: result.data.price_per_day,
-    description: result.data.description,
-  };
+  return mapEquipment(result.data);
+}
+
+export async function updateEquipment(
+  id: string,
+  equipment: NewEquipment
+): Promise<EquipmentItem> {
+  const response = await fetch(`${API_URL}/api/equipment/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: equipment.name,
+      category: equipment.category,
+      brand: equipment.brand,
+      quantity: equipment.quantity,
+      status: equipment.status,
+      price_per_day: equipment.pricePerDay,
+      description: equipment.description,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error ${response.status} al actualizar el equipo`);
+  }
+
+  const result = (await response.json()) as EquipmentResponse;
+
+  return mapEquipment(result.data);
 }

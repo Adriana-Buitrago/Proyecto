@@ -8,6 +8,7 @@ import EventsScreen from '../screens/EventsScreen';
 import EquipmentScreen from '../screens/EquipmentScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
 import EquipmentDetailScreen from '../screens/EquipmentDetailScreen';
+import EquipmentEditScreen from '../screens/EquipmentEditScreen';
 import SavedScreen from '../screens/SavedScreen';
 
 import { useSavedStore } from '../store/savedStore';
@@ -105,6 +106,12 @@ export default function AppNavigator() {
           name="EquipmentDetail"
           component={EquipmentDetailScreen}
           options={{ title: 'Detalle del equipo' }}
+        />
+
+        <Stack.Screen
+          name="EquipmentEdit"
+          component={EquipmentEditScreen}
+          options={{ title: 'Editar equipo' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

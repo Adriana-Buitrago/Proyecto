@@ -1,3 +1,5 @@
+
+
 import { useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -10,15 +12,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import { getEquipment, createEquipment } from '../services/api';
-import type { NewEquipment } from '../services/api';
 import type { EquipmentItem } from '../data/mockData';
 import type { RootStackParamList } from '../types/navigation';
+import EquipmentForm from '../components/EquipmentForm';
+import type { EquipmentFormData } from '../schemas/equipmentSchema';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'MainTabs'>;
+type NavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'MainTabs'
+>;
 
 export default function EquipmentScreen() {
   const navigation = useNavigation<NavigationProp>();
+
   const [search, setSearch] = useState('');
   const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,14 +34,6 @@ export default function EquipmentScreen() {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
-
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
-  const [brand, setBrand] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [status, setStatus] = useState('Disponible');
-  const [pricePerDay, setPricePerDay] = useState('');
-  const [description, setDescription] = useState('');
 
   useEffect(() => {
     async function loadEquipment() {
@@ -63,65 +63,19 @@ export default function EquipmentScreen() {
     );
   }, [search, equipment]);
 
-  function resetForm() {
-    setName('');
-    setCategory('');
-    setBrand('');
-    setQuantity('');
-    setStatus('Disponible');
-    setPricePerDay('');
-    setDescription('');
-    setFormError('');
-  }
-
-  async function handleCreate() {
-    if (
-      !name.trim() ||
-      !category.trim() ||
-      !brand.trim() ||
-      !quantity.trim() ||
-      !pricePerDay.trim() ||
-      !description.trim()
-    ) {
-      setFormError('Completa todos los campos.');
-      return;
-    }
-
-    const parsedQuantity = Number(quantity);
-    const parsedPrice = Number(pricePerDay);
-
-    if (
-      !Number.isInteger(parsedQuantity) ||
-      parsedQuantity < 0 ||
-      !Number.isInteger(parsedPrice) ||
-      parsedPrice < 0
-    ) {
-      setFormError('La cantidad y el precio deben ser números enteros no negativos.');
-      return;
-    }
-
-    const newEquipment: NewEquipment = {
-      name: name.trim(),
-      category: category.trim(),
-      brand: brand.trim(),
-      quantity: parsedQuantity,
-      status: status.trim() || 'Disponible',
-      pricePerDay: parsedPrice,
-      description: description.trim(),
-    };
-
+  async function handleCreate(data: EquipmentFormData) {
     try {
       setSaving(true);
       setFormError('');
 
-      const created = await createEquipment(newEquipment);
+      const created = await createEquipment(data);
 
       setEquipment((current) => [created, ...current]);
       setSearch('');
-      resetForm();
       setShowForm(false);
     } catch (err) {
       console.error('Error creando equipo:', err);
+
       setFormError(
         err instanceof Error
           ? err.message
@@ -132,6 +86,11 @@ export default function EquipmentScreen() {
     }
   }
 
+  function handleToggleForm() {
+    setShowForm((current) => !current);
+    setFormError('');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
@@ -139,10 +98,14 @@ export default function EquipmentScreen() {
         keyExtractor={(item) => item.id}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
             <View style={styles.header}>
+              <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
+
               <Text style={styles.title}>Equipos</Text>
+
               <Text style={styles.subtitle}>
                 Administra los equipos disponibles para tus eventos.
               </Text>
@@ -150,10 +113,7 @@ export default function EquipmentScreen() {
 
             <Pressable
               style={styles.primaryButton}
-              onPress={() => {
-                setShowForm(!showForm);
-                setFormError('');
-              }}
+              onPress={handleToggleForm}
             >
               <Text style={styles.primaryButtonText}>
                 {showForm ? 'Cancelar registro' : '+ Crear equipo'}
@@ -161,108 +121,44 @@ export default function EquipmentScreen() {
             </Pressable>
 
             {showForm && (
-              <View style={styles.form}>
-                <Text style={styles.formTitle}>Registrar nuevo equipo</Text>
-
-                <Text style={styles.fieldLabel}>Nombre</Text>
-                <TextInput
-                  style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Ej. Parlante profesional"
-                  placeholderTextColor="#777"
-                />
-
-                <Text style={styles.fieldLabel}>Categoría</Text>
-                <TextInput
-                  style={styles.input}
-                  value={category}
-                  onChangeText={setCategory}
-                  placeholder="Ej. Audio"
-                  placeholderTextColor="#777"
-                />
-
-                <Text style={styles.fieldLabel}>Marca</Text>
-                <TextInput
-                  style={styles.input}
-                  value={brand}
-                  onChangeText={setBrand}
-                  placeholder="Ej. Sony"
-                  placeholderTextColor="#777"
-                />
-
-                <Text style={styles.fieldLabel}>Cantidad</Text>
-                <TextInput
-                  style={styles.input}
-                  value={quantity}
-                  onChangeText={setQuantity}
-                  keyboardType="numeric"
-                  placeholder="Ej. 5"
-                  placeholderTextColor="#777"
-                />
-
-                <Text style={styles.fieldLabel}>Estado</Text>
-                <TextInput
-                  style={styles.input}
-                  value={status}
-                  onChangeText={setStatus}
-                  placeholder="Disponible"
-                  placeholderTextColor="#777"
-                />
-
-                <Text style={styles.fieldLabel}>Precio por día (COP)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={pricePerDay}
-                  onChangeText={setPricePerDay}
-                  keyboardType="numeric"
-                  placeholder="Ej. 50000"
-                  placeholderTextColor="#777"
-                />
-
-                <Text style={styles.fieldLabel}>Descripción</Text>
-                <TextInput
-                  style={[styles.input, styles.descriptionInput]}
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  placeholder="Describe las características del equipo"
-                  placeholderTextColor="#777"
-                />
-
-                {!!formError && (
-                  <Text style={styles.formError}>{formError}</Text>
-                )}
-
-                <Pressable
-                  style={[
-                    styles.primaryButton,
-                    saving && styles.disabledButton,
-                  ]}
-                  onPress={handleCreate}
-                  disabled={saving}
-                >
-                  <Text style={styles.primaryButtonText}>
-                    {saving ? 'Guardando...' : 'Guardar equipo'}
-                  </Text>
-                </Pressable>
-              </View>
+              <EquipmentForm
+                onSubmit={handleCreate}
+                submitLabel="Guardar equipo"
+                saving={saving}
+                submitError={formError}
+                onCancel={handleToggleForm}
+              />
             )}
 
-            <TextInput
-              style={styles.searchInput}
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Buscar equipos..."
-              placeholderTextColor="#777"
-            />
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Buscar equipos..."
+                placeholderTextColor="#8E87A6"
+              />
+            </View>
 
-            <Text style={styles.resultCount}>
-              {filteredEquipment.length} equipos registrados
-            </Text>
+            <View style={styles.resultsHeader}>
+              <Text style={styles.sectionTitle}>
+                INVENTARIO
+              </Text>
 
-            {loading && <Text style={styles.message}>Cargando equipos...</Text>}
-            {!!error && <Text style={styles.error}>{error}</Text>}
+              <Text style={styles.resultCount}>
+                {filteredEquipment.length} equipos
+              </Text>
+            </View>
+
+            {loading && (
+              <Text style={styles.message}>
+                Cargando equipos...
+              </Text>
+            )}
+
+            {!!error && (
+              <Text style={styles.error}>{error}</Text>
+            )}
           </View>
         }
         renderItem={({ item }) => (
@@ -276,22 +172,56 @@ export default function EquipmentScreen() {
           >
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.status}>{item.status}</Text>
+
+              <View
+                style={[
+                  styles.statusBadge,
+                  item.status.toLowerCase() === 'disponible'
+                    ? styles.availableBadge
+                    : styles.otherStatusBadge,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.status,
+                    item.status.toLowerCase() === 'disponible'
+                      ? styles.availableStatus
+                      : styles.otherStatus,
+                  ]}
+                >
+                  {item.status}
+                </Text>
+              </View>
             </View>
+
             <Text style={styles.cardDetail}>
               {item.category} · {item.brand}
             </Text>
+
+            <View style={styles.cardDivider} />
+
             <Text style={styles.cardDetail}>
-              Cantidad: {item.quantity}
+              Cantidad en inventario
             </Text>
+
+            <Text style={styles.quantity}>
+              {item.quantity} unidades
+            </Text>
+
             <Text style={styles.price}>
-              ${item.pricePerDay.toLocaleString('es-CO')} / día
+              ${item.pricePerDay.toLocaleString('es-CO')} COP / día
+            </Text>
+
+            <Text style={styles.cardAction}>
+              Ver detalles →
             </Text>
           </Pressable>
         )}
         ListEmptyComponent={() =>
           !loading && !error ? (
-            <Text style={styles.message}>No se encontraron equipos.</Text>
+            <Text style={styles.message}>
+              No se encontraron equipos.
+            </Text>
           ) : null
         }
       />
@@ -302,14 +232,21 @@ export default function EquipmentScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#101114',
+    backgroundColor: '#0B0718',
   },
   listContent: {
     padding: 20,
     paddingBottom: 40,
   },
   header: {
-    marginBottom: 20,
+    marginBottom: 22,
+  },
+  eyebrow: {
+    color: '#22D3EE',
+    fontSize: 11,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    marginBottom: 12,
   },
   title: {
     color: '#FFFFFF',
@@ -317,106 +254,122 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   subtitle: {
-    color: '#A5A5A5',
+    color: '#B8B3CC',
     fontSize: 14,
-    marginTop: 6,
+    marginTop: 7,
+    lineHeight: 21,
   },
   primaryButton: {
     backgroundColor: '#D6A84F',
-    padding: 14,
-    borderRadius: 10,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   primaryButtonText: {
     color: '#101114',
     fontWeight: 'bold',
     fontSize: 15,
   },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  form: {
-    backgroundColor: '#1B1D22',
+  searchContainer: {
+    backgroundColor: '#17112B',
+    borderColor: '#352650',
+    borderWidth: 1,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  formTitle: {
-    color: '#FFFFFF',
-    fontSize: 19,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    color: '#E5E5E5',
-    fontSize: 13,
-    marginBottom: 6,
-    marginTop: 10,
-  },
-  input: {
-    backgroundColor: '#292C32',
-    color: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    fontSize: 14,
-  },
-  descriptionInput: {
-    minHeight: 85,
-    textAlignVertical: 'top',
-  },
-  formError: {
-    color: '#FF7777',
-    marginVertical: 12,
+    marginBottom: 22,
   },
   searchInput: {
-    backgroundColor: '#25272D',
     color: '#FFFFFF',
-    borderRadius: 10,
-    padding: 13,
-    marginTop: 4,
+    padding: 15,
+    fontSize: 14,
+  },
+  resultsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 14,
   },
+  sectionTitle: {
+    color: '#22D3EE',
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+  },
   resultCount: {
-    color: '#AAAAAA',
-    marginBottom: 12,
-    fontSize: 13,
+    color: '#B8B3CC',
+    fontSize: 12,
   },
   card: {
-    backgroundColor: '#1B1D22',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: '#17112B',
+    borderColor: '#352650',
+    borderWidth: 1,
+    padding: 17,
+    borderRadius: 16,
+    marginBottom: 14,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 8,
+    alignItems: 'flex-start',
+    gap: 10,
   },
   cardTitle: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
     flex: 1,
+    lineHeight: 23,
+  },
+  statusBadge: {
+    borderRadius: 7,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  availableBadge: {
+    backgroundColor: '#123B43',
+  },
+  otherStatusBadge: {
+    backgroundColor: '#352650',
   },
   status: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  availableStatus: {
+    color: '#22D3EE',
+  },
+  otherStatus: {
     color: '#D6A84F',
-    fontSize: 12,
   },
   cardDetail: {
-    color: '#AAAAAA',
-    marginTop: 7,
+    color: '#B8B3CC',
+    marginTop: 9,
     fontSize: 13,
   },
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#352650',
+    marginVertical: 13,
+  },
+  quantity: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    marginTop: 4,
+  },
   price: {
-    color: '#D6A84F',
+    color: '#22D3EE',
     fontWeight: 'bold',
-    marginTop: 10,
+    fontSize: 17,
+    marginTop: 14,
+  },
+  cardAction: {
+    color: '#D6A84F',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 14,
   },
   message: {
-    color: '#AAAAAA',
+    color: '#B8B3CC',
     textAlign: 'center',
     padding: 20,
   },

@@ -1,3 +1,5 @@
+
+import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -6,10 +8,16 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute } from '@react-navigation/native';
+import {
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { equipment } from '../data/mockData';
+import { getEquipmentById } from '../services/api';
+import type { EquipmentItem } from '../data/mockData';
 import { useSavedStore } from '../store/savedStore';
 import type { RootStackParamList } from '../types/navigation';
 
@@ -18,41 +26,98 @@ type EquipmentDetailRouteProp = RouteProp<
   'EquipmentDetail'
 >;
 
+type NavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'EquipmentDetail'
+>;
+
 export default function EquipmentDetailScreen() {
   const route = useRoute<EquipmentDetailRouteProp>();
+  const navigation = useNavigation<NavigationProp>();
   const { equipmentId } = route.params;
+
+  const [item, setItem] = useState<EquipmentItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const addItem = useSavedStore((state) => state.addItem);
   const removeItem = useSavedStore((state) => state.removeItem);
 
   const saved = useSavedStore((state) =>
-    state.savedItems.some((item) => item.id === equipmentId)
+    state.savedItems.some((savedItem) => savedItem.id === equipmentId)
   );
 
-  const item = equipment.find(
-    (equipmentItem) => equipmentItem.id === equipmentId,
-  );
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-  if (!item) {
-    return (
-      <SafeAreaView
-        style={styles.screen}
-        edges={['left', 'right', 'bottom']}
-      >
-        <View style={styles.container}>
-          <Text style={styles.title}>Equipo no encontrado</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+      async function loadEquipment() {
+        try {
+          setLoading(true);
+          setError('');
+
+          const data = await getEquipmentById(equipmentId);
+
+          if (active) {
+            setItem(data);
+          }
+        } catch (err) {
+          console.error('Error cargando detalle del equipo:', err);
+
+          if (active) {
+            setError(
+              err instanceof Error
+                ? err.message
+                : 'No fue posible cargar el equipo.'
+            );
+          }
+        } finally {
+          if (active) {
+            setLoading(false);
+          }
+        }
+      }
+
+      loadEquipment();
+
+      return () => {
+        active = false;
+      };
+    }, [equipmentId])
+  );
 
   const handleSave = () => {
+    if (!item) return;
+
     if (saved) {
       removeItem(item.id);
     } else {
       addItem(item);
     }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.container}>
+          <Text style={styles.value}>Cargando equipo...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !item) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Equipo no disponible</Text>
+          <Text style={styles.note}>
+            {error || 'No se encontró el equipo solicitado.'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -93,6 +158,7 @@ export default function EquipmentDetailScreen() {
           <Text style={styles.price}>
             ${item.pricePerDay.toLocaleString('es-CO')} COP
           </Text>
+
           <Text style={styles.disclaimer}>
             Tarifa ficticia para demostración.
           </Text>
@@ -102,6 +168,17 @@ export default function EquipmentDetailScreen() {
           <Text style={styles.label}>Descripción</Text>
           <Text style={styles.value}>{item.description}</Text>
         </View>
+
+        <Pressable
+          style={styles.editButton}
+          onPress={() =>
+            navigation.navigate('EquipmentEdit', {
+              equipmentId: item.id,
+            })
+          }
+        >
+          <Text style={styles.editButtonText}>Editar equipo</Text>
+        </Pressable>
 
         <Pressable
           style={[
@@ -207,12 +284,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#352650',
     marginVertical: 8,
   },
+  editButton: {
+    backgroundColor: '#D6A84F',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  editButtonText: {
+    color: '#101114',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
   saveButton: {
     backgroundColor: '#7C3AED',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 12,
   },
   savedButton: {
     backgroundColor: '#352650',
