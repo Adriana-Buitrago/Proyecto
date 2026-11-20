@@ -1,6 +1,6 @@
 # DJ / Sonido y Luces
 
-Proyecto desarrollado durante las semanas 1, 2, 3, 4 y 5 del bootcamp. Incluye una aplicación móvil construida con React Native, Expo y TypeScript, y un backend desarrollado con Node.js, Express y PostgreSQL.
+Proyecto desarrollado durante las semanas 1, 2, 3, 4, 5 y 6 del bootcamp. Incluye una aplicación móvil construida con React Native, Expo y TypeScript, y un backend desarrollado con Node.js, Express y PostgreSQL.
 
 ## Dominio
 
@@ -14,14 +14,19 @@ Aplicación de gestión para un servicio de DJ, sonido e iluminación. El modelo
 ## Tecnologías utilizadas
 
 ### Aplicación móvil
+
 - React Native.
 - Expo.
 - TypeScript.
 - React Navigation 7.
 - Zustand.
+- React Hook Form.
+- Zod.
+- @hookform/resolvers.
 - pnpm.
 
 ### Backend e infraestructura
+
 - Node.js.
 - Express.
 - PostgreSQL.
@@ -135,13 +140,13 @@ Funcionalidades implementadas:
 
 La API se encuentra desplegada en Render:
 
-https://dj-sonido-luces-api.onrender.com
+[https://dj-sonido-luces-api.onrender.com](https://dj-sonido-luces-api.onrender.com/)
 
 La aplicación móvil utiliza esta dirección para consultar los eventos y equipos.
 
 ### Endpoints disponibles
 
-| Método | Endpoint | Descripción |
+| **Método** | **Endpoint** | **Descripción** |
 |---|---|---|
 | GET | `/` | Verifica la respuesta general de la API |
 | GET | `/api/health` | Comprueba la conexión con PostgreSQL principal |
@@ -155,12 +160,14 @@ La aplicación móvil utiliza esta dirección para consultar los eventos y equip
 Se configuraron dos servicios mediante `backend/deploy/compose.prod.yaml`:
 
 **PostgreSQL**
+
 - Imagen `postgres:17-alpine`.
 - Volumen persistente para los datos.
 - Healthcheck mediante `pg_isready`.
 - Política de reinicio `unless-stopped`.
 
 **API**
+
 - Construcción mediante Dockerfile.
 - Puerto 3000.
 - Dependencia de PostgreSQL con condición `service_healthy`.
@@ -277,7 +284,7 @@ La integración fue comprobada en Expo Go y mediante la ejecución de TypeScript
 
 Se realizó la migración de los datos iniciales desde PostgreSQL local hacia una base de datos PostgreSQL administrada en Render.
 
-| Tabla | Registros en origen | Registros en destino |
+| **Tabla** | **Registros en origen** | **Registros en destino** |
 |---|---:|---:|
 | `events` | 4 | 4 |
 | `equipment` | 12 | 12 |
@@ -301,7 +308,7 @@ Los hashes de origen y destino coincidieron en ambas tablas.
 
 Se realizaron consultas desde la API hacia PostgreSQL en Render:
 
-| Endpoint | Resultado |
+| **Endpoint** | **Resultado** |
 |---|---|
 | `/api/cloud/events` | HTTP 200; 4 eventos recibidos |
 | `/api/cloud/equipment` | HTTP 200; 12 equipos recibidos |
@@ -322,7 +329,7 @@ entregable-s05-configuracion-y-verificacion.md
 
 ### Diferencias entre los entornos
 
-| Característica | Origen local | Destino |
+| **Característica** | **Origen local** | **Destino** |
 |---|---|---|
 | Motor | PostgreSQL | PostgreSQL |
 | Versión | 17 | 18 |
@@ -345,36 +352,142 @@ En caso de presentarse problemas con la base de datos en Render, se contempla:
 
 Esta estrategia está documentada como procedimiento previsto; no se ha registrado una ejecución de rollback.
 
+## Semana 6 — Formularios y validaciones con React Hook Form y Zod
+
+Durante esta semana se mejoró la gestión de equipos de la aplicación móvil mediante formularios reutilizables, validaciones de datos y conexión con los servicios del backend.
+
+### Formularios reutilizables
+
+Se implementó un sistema de formularios compartidos para registrar y editar equipos.
+
+Funcionalidades implementadas:
+
+- **React Hook Form:** administración del estado de los formularios y control de los campos.
+- **Zod:** definición de esquemas para validar los datos ingresados.
+- **@hookform/resolvers:** integración entre React Hook Form y Zod.
+- **EquipmentForm.tsx:** componente reutilizable para crear y editar equipos.
+- **FormField.tsx:** componente para representar campos de entrada con sus respectivos mensajes de validación.
+- **equipmentSchema.ts:** esquema de validación para los datos de los equipos.
+
+### Validaciones implementadas
+
+Se establecieron reglas para garantizar que la información ingresada sea correcta:
+
+- El nombre del equipo es obligatorio y tiene un límite de caracteres.
+- La categoría debe estar seleccionada.
+- La marca es obligatoria.
+- La cantidad debe ser un número entero igual o superior a cero.
+- El estado del equipo es obligatorio.
+- El precio por día debe ser un número entero igual o superior a cero.
+- La descripción es obligatoria y tiene un límite de caracteres.
+
+Los campos incorrectos muestran mensajes de error en español y resaltan visualmente el campo que requiere corrección.
+
+### Creación y edición de equipos
+
+Se ampliaron las funcionalidades del catálogo para permitir administrar los equipos desde la aplicación móvil.
+
+- **Crear equipos:** permite registrar nuevos equipos mediante un formulario validado y enviar la información al backend.
+- **Editar equipos:** permite recuperar los datos de un equipo existente, precargar el formulario y actualizar su información.
+- **Detalle del equipo:** se mantiene la consulta de información y se incorpora el acceso a la edición.
+- **Estados de carga:** se bloquean las acciones durante el envío de información para evitar operaciones repetidas.
+- **Manejo de errores:** se muestran mensajes cuando ocurre algún problema durante la creación o actualización.
+
+### Navegación
+
+Se actualizó `AppNavigator.tsx` para incorporar la pantalla `EquipmentEditScreen.tsx` y sus parámetros de navegación en `navigation.ts`.
+
+### Dependencias incorporadas
+
+| **Dependencia** | **Función** |
+|---|---|
+| `react-hook-form` | Administración de formularios |
+| `zod` | Validación y transformación de datos |
+| `@hookform/resolvers` | Integración de Zod con React Hook Form |
+
+### Archivos principales incorporados o modificados
+
+```text
+src/
+├── components/
+│   ├── EquipmentForm.tsx
+│   └── FormField.tsx
+├── schemas/
+│   └── equipmentSchema.ts
+├── screens/
+│   ├── EquipmentScreen.tsx
+│   ├── EquipmentDetailScreen.tsx
+│   └── EquipmentEditScreen.tsx
+├── services/
+│   └── api.ts
+├── navigation/
+│   └── AppNavigator.tsx
+└── types/
+    └── navigation.ts
+```
+
+### Pruebas y verificación
+
+Se realizaron pruebas funcionales en los siguientes entornos:
+
+- Navegador web.
+- Dispositivo Android mediante Expo Go.
+
+Se verificaron las siguientes operaciones:
+
+1. Consulta del catálogo de equipos.
+2. Creación de equipos.
+3. Edición de equipos existentes.
+4. Validación de campos obligatorios.
+5. Rechazo de cantidades y precios negativos.
+6. Rechazo de valores decimales en campos enteros.
+7. Visualización de mensajes de validación.
+8. Navegación entre el listado, el detalle y la edición.
+
+También se ejecutó el siguiente comando para verificar los tipos de TypeScript:
+
+```bash
+pnpm exec tsc --noEmit
+```
+
+**Resultado:** las pruebas funcionales se completaron correctamente en navegador y dispositivo móvil. La verificación de TypeScript finalizó sin errores.
+
+### Resultado de la Semana 6
+
+La aplicación cuenta con formularios reutilizables, validaciones centralizadas mediante Zod y funcionalidades de creación y edición de equipos conectadas con el backend. Las pruebas se realizaron satisfactoriamente en navegador y dispositivo móvil.
+
 ---
 
 # Estructura general del proyecto
 
 ```text
-Proyecto-revision/
-├── semana-4/
-│   └── Aplicación móvil Expo y TypeScript
+Proyecto/
+├── app-movil/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── data/
+│   │   ├── navigation/
+│   │   ├── schemas/
+│   │   ├── screens/
+│   │   ├── services/
+│   │   ├── store/
+│   │   └── types/
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   └── README.md
 ├── backend/
 │   ├── database/
-│   │   ├── schema.sql
-│   │   └── seed.sql
 │   ├── deploy/
-│   │   └── compose.prod.yaml
 │   ├── evidence/
-│   │   └── migration-verification.txt
 │   ├── scripts/
-│   │   ├── migrate-to-render.js
-│   │   ├── smoke-test.sh
-│   │   └── verify-migration.js
 │   ├── src/
 │   │   ├── config/
 │   │   ├── routes/
 │   │   └── server.js
 │   ├── tests/
-│   │   └── api.test.js
 │   ├── .env.example
 │   ├── Dockerfile
 │   └── package.json
-├── entregable-s05-configuracion-y-verificacion.md
 ├── .gitignore
 └── README.md
 ```
@@ -386,13 +499,19 @@ Proyecto-revision/
 - Las pantallas de eventos y equipos consultan la API pública desplegada en Render.
 - El servicio `src/services/api.ts` adapta los datos recibidos del backend a los tipos de TypeScript.
 - Los IDs son únicos y estables para que `FlatList` utilice `keyExtractor` correctamente.
-- Se mantiene una organización modular mediante carpetas para datos, navegación, pantallas, almacenamiento global y tipos.
+- Se mantiene una organización modular mediante carpetas para datos, navegación, pantallas, almacenamiento global, esquemas de validación, componentes y tipos.
+- Los formularios de equipos utilizan React Hook Form para administrar los campos y Zod para validar la información.
+- Se reutilizan componentes para mantener una estructura consistente en los formularios de creación y edición.
+- Se conserva una identidad visual uniforme entre las pantallas de listado, detalle y edición de equipos.
 
 # Estado actual del proyecto
 
-El proyecto cuenta con cinco semanas de desarrollo:
+El proyecto cuenta con seis semanas de desarrollo:
 
 - **Semanas 1 a 4:** aplicación móvil con componentes, catálogo, navegación y gestión de estado global mediante Zustand.
 - **Semana 5:** backend con Node.js y Express, PostgreSQL, Docker, pruebas funcionales y migración de datos verificada en Render.
+- **Semana 6:** formularios reutilizables, validaciones con React Hook Form y Zod, creación y edición de equipos conectadas con el backend.
 
 La migración de datos está completada y verificada. La API está desplegada públicamente en Render y las pantallas de eventos y equipos de la aplicación móvil están integradas con ella.
+
+La aplicación permite consultar, crear y editar equipos, con validaciones de formularios y pruebas realizadas en navegador y dispositivo móvil mediante Expo Go.
