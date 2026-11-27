@@ -10,6 +10,7 @@ import EventDetailScreen from '../screens/EventDetailScreen';
 import EquipmentDetailScreen from '../screens/EquipmentDetailScreen';
 import EquipmentEditScreen from '../screens/EquipmentEditScreen';
 import SavedScreen from '../screens/SavedScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 import { useSavedStore } from '../store/savedStore';
 import type { RootStackParamList } from '../types/navigation';
@@ -18,6 +19,7 @@ type TabParamList = {
   Events: undefined;
   Equipment: undefined;
   Saved: undefined;
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -44,8 +46,10 @@ function MainTabs() {
             iconName = 'calendar-outline';
           } else if (route.name === 'Equipment') {
             iconName = 'volume-high-outline';
-          } else {
+          } else if (route.name === 'Saved') {
             iconName = 'bookmark-outline';
+          } else {
+            iconName = 'settings-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -55,19 +59,13 @@ function MainTabs() {
       <Tab.Screen
         name="Events"
         component={EventsScreen}
-        options={{
-          title: 'Eventos',
-          tabBarLabel: 'Eventos',
-        }}
+        options={{ title: 'Eventos', tabBarLabel: 'Eventos' }}
       />
 
       <Tab.Screen
         name="Equipment"
         component={EquipmentScreen}
-        options={{
-          title: 'Equipos',
-          tabBarLabel: 'Equipos',
-        }}
+        options={{ title: 'Equipos', tabBarLabel: 'Equipos' }}
       />
 
       <Tab.Screen
@@ -77,10 +75,14 @@ function MainTabs() {
           title: 'Equipos guardados',
           tabBarLabel: 'Guardados',
           tabBarBadge: savedItems.length > 0 ? savedItems.length : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: '#7C3AED',
-          },
+          tabBarBadgeStyle: { backgroundColor: '#7C3AED' },
         }}
+      />
+
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: 'Configuración', tabBarLabel: 'Ajustes' }}
       />
     </Tab.Navigator>
   );

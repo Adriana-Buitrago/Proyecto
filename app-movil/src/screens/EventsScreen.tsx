@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+
 import {
   View,
   Text,
@@ -10,9 +10,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery } from '@tanstack/react-query';
 
 import { getEvents } from '../services/api';
-import type { EventItem } from '../data/mockData';
 import type { RootStackParamList } from '../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<
@@ -22,25 +22,15 @@ type NavigationProp = NativeStackNavigationProp<
 
 export default function EventsScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadEvents = async () => {
-      try {
-        const data = await getEvents();
-        setEvents(data);
-      } catch (err) {
-        console.error('Error cargando eventos:', err);
-        setError('No fue posible cargar los eventos. Intenta nuevamente.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEvents();
-  }, []);
+  const {
+    data: events = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['events'],
+    queryFn: getEvents,
+  });
 
   return (
     <SafeAreaView
@@ -53,18 +43,18 @@ export default function EventsScreen() {
         Sonido, música e iluminación para cada celebración
       </Text>
 
-      {loading && (
+      {isLoading && (
         <Text style={styles.subtitle}>Cargando eventos...</Text>
       )}
 
-      {!!error && (
+      {isError && events.length === 0 && (
         <Text style={{ color: '#FF6B6B', marginBottom: 12 }}>
-          {error}
+          No fue posible cargar los eventos.
         </Text>
       )}
 
       <FlatList
-        data={loading || error ? [] : events}
+        data={events}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -96,8 +86,8 @@ export default function EventsScreen() {
               </View>
 
               <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.info}>📅  {item.date}</Text>
-              <Text style={styles.info}>📍  {item.location}</Text>
+              <Text style={styles.info}>📅 {item.date}</Text>
+              <Text style={styles.info}>📍 {item.location}</Text>
 
               <View style={styles.footer}>
                 <Text style={styles.link}>Ver detalles</Text>
@@ -202,3 +192,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+

@@ -1,6 +1,6 @@
 # DJ / Sonido y Luces
 
-Proyecto desarrollado durante las semanas 1, 2, 3, 4, 5 y 6 del bootcamp. Incluye una aplicación móvil construida con React Native, Expo y TypeScript, y un backend desarrollado con Node.js, Express y PostgreSQL.
+Proyecto desarrollado durante las semanas 1, 2, 3, 4, 5, 6 y 7 del bootcamp. Incluye una aplicación móvil construida con React Native, Expo y TypeScript, y un backend desarrollado con Node.js, Express y PostgreSQL.
 
 ## Dominio
 
@@ -23,6 +23,12 @@ Aplicación de gestión para un servicio de DJ, sonido e iluminación. El modelo
 - React Hook Form.
 - Zod.
 - @hookform/resolvers.
+- TanStack Query.
+- @tanstack/react-query-persist-client.
+- @tanstack/query-async-storage-persister.
+- @react-native-async-storage/async-storage.
+- react-native-mmkv.
+- expo-secure-store.
 - pnpm.
 
 ### Backend e infraestructura
@@ -87,7 +93,7 @@ Implementa Zustand para administrar el estado global de los equipos guardados, p
 - **Pantalla de guardados:** muestra los equipos almacenados y permite eliminarlos.
 - **Contador dinámico:** muestra en la pestaña Guardados la cantidad de equipos almacenados y se actualiza automáticamente.
 - **Estado vacío:** presenta un mensaje cuando no existen equipos guardados.
-- **Navegación:** incorpora las pestañas Eventos, Inicio y Guardados, manteniendo las pantallas de detalle.
+- **Navegación:** incorpora las pestañas Eventos, Equipos y Guardados, manteniendo las pantallas de detalle.
 
 ### Estructura de archivos principales
 
@@ -118,7 +124,7 @@ El archivo `src/store/savedStore.ts` contiene:
 - `removeItem`: elimina un equipo mediante su identificador.
 - `isItemSaved`: comprueba si un equipo ya se encuentra guardado.
 
-La información se administra en memoria mediante Zustand. No se ha implementado almacenamiento persistente.
+La información de los equipos guardados se administra mediante Zustand en memoria.
 
 ## Semana 5 — Backend, Docker y migración a Render
 
@@ -269,7 +275,7 @@ Resultados obtenidos:
 
 ### Integración de la aplicación móvil con la API
 
-Se creó el servicio `semana-4/src/services/api.ts`, encargado de consultar la API y adaptar los nombres de los campos recibidos desde PostgreSQL a los tipos utilizados por TypeScript.
+Se creó el servicio `src/services/api.ts`, encargado de consultar la API y adaptar los nombres de los campos recibidos desde PostgreSQL a los tipos utilizados por TypeScript.
 
 Las pantallas `EventsScreen.tsx` y `EquipmentScreen.tsx` consultan los siguientes endpoints:
 
@@ -278,7 +284,7 @@ Las pantallas `EventsScreen.tsx` y `EquipmentScreen.tsx` consultan los siguiente
 
 Se conservaron el diseño de las pantallas, el buscador del catálogo, los estados de carga y error, y la navegación existente.
 
-La integración fue comprobada en Expo Go y mediante la ejecución de TypeScript con `pnpm exec tsc --noEmit`, sin errores.
+La integración fue comprobada mediante la ejecución de TypeScript con `pnpm exec tsc --noEmit`, sin errores.
 
 ### Migración de datos a Render
 
@@ -456,6 +462,142 @@ pnpm exec tsc --noEmit
 
 La aplicación cuenta con formularios reutilizables, validaciones centralizadas mediante Zod y funcionalidades de creación y edición de equipos conectadas con el backend. Las pruebas se realizaron satisfactoriamente en navegador y dispositivo móvil.
 
+## Semana 7 — Persistencia local
+
+Durante esta semana se implementaron mecanismos de almacenamiento local en la aplicación móvil DJ Sonido y Luces, utilizando AsyncStorage, MMKV y Expo SecureStore. También se incorporó TanStack Query para administrar las consultas y conservar información en caché.
+
+### Persistencia de consultas con AsyncStorage y TanStack Query
+
+Se implementó un sistema de persistencia de la caché de consultas mediante TanStack Query y AsyncStorage.
+
+Funcionalidades implementadas:
+
+- **TanStack Query:** administración de las consultas y estados de carga de eventos y equipos.
+- **PersistQueryClientProvider:** integración del proveedor encargado de recuperar y conservar la caché de consultas.
+- **AsyncStorage:** almacenamiento persistente de la información de la caché en el dispositivo.
+- **Persistencia de eventos:** conserva la información consultada desde el backend para facilitar su disponibilidad posterior.
+- **Persistencia de equipos:** permite recuperar la información previamente consultada desde el almacenamiento local.
+- **Configuración de caché:** se establecieron tiempos de conservación y actualización de la información.
+
+Las pantallas `EventsScreen.tsx` y `EquipmentScreen.tsx` utilizan `useQuery` para consultar los datos y administrar los estados de carga y error.
+
+La configuración principal se encuentra en:
+
+- `src/services/queryClient.ts`
+- `src/services/queryPersistence.ts`
+- `App.tsx`
+
+### Preferencias de usuario con MMKV
+
+Se incorporó MMKV como mecanismo de almacenamiento local síncrono para guardar las preferencias de la aplicación.
+
+Funcionalidades implementadas:
+
+- **Almacenamiento síncrono:** configuración de MMKV mediante `createMMKV`.
+- **Preferencia de tema:** permite seleccionar entre tema claro y oscuro.
+- **Preferencias de notificaciones:** permite activar o desactivar las notificaciones.
+- **Persistencia de preferencias:** los valores se almacenan localmente para conservar la configuración del usuario.
+- **Hook personalizado:** se creó `usePreferences.ts` para centralizar la lectura y actualización de las preferencias.
+
+La configuración del almacenamiento se encuentra en `src/services/storage.ts`.
+
+### Almacenamiento seguro con Expo SecureStore
+
+Se implementó Expo SecureStore para almacenar información sensible de manera protegida en el dispositivo.
+
+Funcionalidades implementadas:
+
+- **Guardar información segura:** permite almacenar una clave de acceso del administrador.
+- **Recuperar información:** permite consultar la información previamente guardada.
+- **Eliminar información:** permite eliminar los datos almacenados de forma segura.
+- **Hook personalizado:** se creó `useSecureStorage.ts` para administrar las operaciones de almacenamiento seguro.
+- **Servicio de almacenamiento:** se implementó `secureStorage.ts` para centralizar las operaciones de SecureStore.
+
+### Pantalla de configuración
+
+Se incorporó una nueva pantalla denominada `SettingsScreen.tsx`, integrada a la navegación principal de la aplicación.
+
+La pantalla permite:
+
+- Cambiar la preferencia de tema.
+- Activar y desactivar las notificaciones.
+- Guardar una clave de acceso del administrador.
+- Consultar si existe una clave almacenada.
+- Eliminar la clave guardada.
+
+Se agregó una cuarta pestaña denominada **Configuración**, manteniendo las secciones existentes de Eventos, Equipos y Guardados.
+
+### Dependencias incorporadas
+
+| **Dependencia** | **Función** |
+|---|---|
+| `@react-native-async-storage/async-storage` | Almacenamiento persistente asíncrono |
+| `react-native-mmkv` | Almacenamiento local síncrono de preferencias |
+| `expo-secure-store` | Almacenamiento seguro de información sensible |
+| `@tanstack/react-query` | Administración de consultas y caché |
+| `@tanstack/react-query-persist-client` | Persistencia de la caché de consultas |
+| `@tanstack/query-async-storage-persister` | Adaptador de persistencia con AsyncStorage |
+
+### Archivos principales incorporados o modificados
+
+```text
+app-movil/
+├── App.tsx
+└── src/
+    ├── hooks/
+    │   ├── usePreferences.ts
+    │   └── useSecureStorage.ts
+    ├── navigation/
+    │   └── AppNavigator.tsx
+    ├── screens/
+    │   ├── EventsScreen.tsx
+    │   ├── EquipmentScreen.tsx
+    │   └── SettingsScreen.tsx
+    └── services/
+        ├── queryClient.ts
+        ├── queryPersistence.ts
+        ├── secureStorage.ts
+        └── storage.ts
+```
+
+### Configuración y ejecución en Android
+
+Se generó el proyecto nativo de Android mediante Expo Prebuild para incorporar las dependencias que requieren código nativo, especialmente MMKV.
+
+Para preparar el entorno se requiere:
+
+- Android Studio.
+- Android SDK y Android SDK Platform-Tools.
+- Java Development Kit.
+- Un emulador Android o dispositivo físico compatible.
+
+Comandos principales de ejecución:
+
+```bash
+cd app-movil
+pnpm install
+pnpm exec expo prebuild --platform android
+pnpm exec expo run:android
+```
+
+**Nota:** MMKV requiere una compilación nativa. Por esta razón, la aplicación debe ejecutarse mediante un desarrollo nativo y no únicamente desde Expo Go.
+
+### Pruebas y verificación
+
+Se ejecutó la comprobación de TypeScript mediante:
+
+```bash
+pnpm exec tsc --noEmit
+```
+
+**Resultado:** la verificación de TypeScript finalizó sin errores.
+
+### Resultado de la Semana 7
+
+La aplicación incorpora tres mecanismos de almacenamiento local con propósitos diferentes: AsyncStorage para conservar la caché de consultas, MMKV para las preferencias de usuario y Expo SecureStore para información sensible.
+
+Además, se integró TanStack Query en las pantallas de eventos y equipos, y se agregó una pantalla de configuración para administrar las preferencias y la información segura del usuario.
+
 ---
 
 # Estructura general del proyecto
@@ -466,12 +608,14 @@ Proyecto/
 │   ├── src/
 │   │   ├── components/
 │   │   ├── data/
+│   │   ├── hooks/
 │   │   ├── navigation/
 │   │   ├── schemas/
 │   │   ├── screens/
 │   │   ├── services/
 │   │   ├── store/
 │   │   └── types/
+│   ├── android/
 │   ├── package.json
 │   ├── pnpm-lock.yaml
 │   └── README.md
@@ -489,7 +633,9 @@ Proyecto/
 │   ├── Dockerfile
 │   └── package.json
 ├── .gitignore
-└── README.md
+├── README.md
+├── entregable-s05-configuracion-y-verificacion.md
+└── entregable-s07-persistencia-local.md
 ```
 
 # Decisiones de diseño
@@ -499,19 +645,26 @@ Proyecto/
 - Las pantallas de eventos y equipos consultan la API pública desplegada en Render.
 - El servicio `src/services/api.ts` adapta los datos recibidos del backend a los tipos de TypeScript.
 - Los IDs son únicos y estables para que `FlatList` utilice `keyExtractor` correctamente.
-- Se mantiene una organización modular mediante carpetas para datos, navegación, pantallas, almacenamiento global, esquemas de validación, componentes y tipos.
+- Se mantiene una organización modular mediante carpetas para datos, navegación, pantallas, almacenamiento global, hooks, esquemas de validación, componentes y tipos.
 - Los formularios de equipos utilizan React Hook Form para administrar los campos y Zod para validar la información.
 - Se reutilizan componentes para mantener una estructura consistente en los formularios de creación y edición.
 - Se conserva una identidad visual uniforme entre las pantallas de listado, detalle y edición de equipos.
+- Se utiliza TanStack Query para administrar las consultas y la caché de datos.
+- AsyncStorage conserva la caché de consultas para facilitar la disponibilidad de los datos.
+- MMKV almacena las preferencias de usuario mediante operaciones síncronas.
+- Expo SecureStore protege la información sensible almacenada en el dispositivo.
 
 # Estado actual del proyecto
 
-El proyecto cuenta con seis semanas de desarrollo:
+El proyecto cuenta con siete semanas de desarrollo:
 
 - **Semanas 1 a 4:** aplicación móvil con componentes, catálogo, navegación y gestión de estado global mediante Zustand.
 - **Semana 5:** backend con Node.js y Express, PostgreSQL, Docker, pruebas funcionales y migración de datos verificada en Render.
 - **Semana 6:** formularios reutilizables, validaciones con React Hook Form y Zod, creación y edición de equipos conectadas con el backend.
+- **Semana 7:** persistencia local mediante AsyncStorage, MMKV y Expo SecureStore, integración de TanStack Query y pantalla de configuración.
 
 La migración de datos está completada y verificada. La API está desplegada públicamente en Render y las pantallas de eventos y equipos de la aplicación móvil están integradas con ella.
 
-La aplicación permite consultar, crear y editar equipos, con validaciones de formularios y pruebas realizadas en navegador y dispositivo móvil mediante Expo Go.
+La aplicación permite consultar, crear y editar equipos, gestionar equipos guardados, validar formularios y conservar información mediante mecanismos de almacenamiento local.
+
+El proyecto mantiene una arquitectura modular, con separación entre la aplicación móvil, los servicios de backend, los componentes de interfaz, la navegación, los hooks y los mecanismos de almacenamiento.

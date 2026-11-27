@@ -1,6 +1,5 @@
 
-
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -12,9 +11,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getEquipment, createEquipment } from '../services/api';
-import type { EquipmentItem } from '../data/mockData';
 import type { RootStackParamList } from '../types/navigation';
 import EquipmentForm from '../components/EquipmentForm';
 import type { EquipmentFormData } from '../schemas/equipmentSchema';
@@ -26,30 +25,43 @@ type NavigationProp = NativeStackNavigationProp<
 
 export default function EquipmentScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
-  const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
-  useEffect(() => {
-    async function loadEquipment() {
-      try {
-        const data = await getEquipment();
-        setEquipment(data);
-      } catch (err) {
-        console.error('Error cargando equipos:', err);
-        setError('No fue posible cargar los equipos.');
-      } finally {
-        setLoading(false);
-      }
-    }
+  const {
+    data: equipment = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['equipment'],
+    queryFn: getEquipment,
+  });
 
-    loadEquipment();
-  }, []);
+  const createMutation = useMutation({
+    mutationFn: createEquipment,
+    onSuccess: (created) => {
+      queryClient.setQueryData(
+        ['equipment'],
+        (current: typeof equipment = []) => [created, ...current]
+      );
+
+      setSearch('');
+      setShowForm(false);
+      setFormError('');
+    },
+    onError: (error) => {
+      console.error('Error creando equipo:', error);
+
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : 'No fue posible registrar el equipo.'
+      );
+    },
+  });
 
   const filteredEquipment = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -64,26 +76,8 @@ export default function EquipmentScreen() {
   }, [search, equipment]);
 
   async function handleCreate(data: EquipmentFormData) {
-    try {
-      setSaving(true);
-      setFormError('');
-
-      const created = await createEquipment(data);
-
-      setEquipment((current) => [created, ...current]);
-      setSearch('');
-      setShowForm(false);
-    } catch (err) {
-      console.error('Error creando equipo:', err);
-
-      setFormError(
-        err instanceof Error
-          ? err.message
-          : 'No fue posible registrar el equipo.'
-      );
-    } finally {
-      setSaving(false);
-    }
+    setFormError('');
+    createMutation.mutate(data);
   }
 
   function handleToggleForm() {
@@ -94,7 +88,7 @@ export default function EquipmentScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={loading || error ? [] : filteredEquipment}
+        data={filteredEquipment}
         keyExtractor={(item) => item.id}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
@@ -103,9 +97,7 @@ export default function EquipmentScreen() {
           <View>
             <View style={styles.header}>
               <Text style={styles.eyebrow}>DJ SONIDO Y LUCES</Text>
-
               <Text style={styles.title}>Equipos</Text>
-
               <Text style={styles.subtitle}>
                 Administra los equipos disponibles para tus eventos.
               </Text>
@@ -124,7 +116,7 @@ export default function EquipmentScreen() {
               <EquipmentForm
                 onSubmit={handleCreate}
                 submitLabel="Guardar equipo"
-                saving={saving}
+                saving={createMutation.isPending}
                 submitError={formError}
                 onCancel={handleToggleForm}
               />
@@ -141,23 +133,20 @@ export default function EquipmentScreen() {
             </View>
 
             <View style={styles.resultsHeader}>
-              <Text style={styles.sectionTitle}>
-                INVENTARIO
-              </Text>
-
+              <Text style={styles.sectionTitle}>INVENTARIO</Text>
               <Text style={styles.resultCount}>
                 {filteredEquipment.length} equipos
               </Text>
             </View>
 
-            {loading && (
-              <Text style={styles.message}>
-                Cargando equipos...
-              </Text>
+            {isLoading && (
+              <Text style={styles.message}>Cargando equipos...</Text>
             )}
 
-            {!!error && (
-              <Text style={styles.error}>{error}</Text>
+            {isError && equipment.length === 0 && (
+              <Text style={styles.error}>
+                No fue posible cargar los equipos.
+              </Text>
             )}
           </View>
         }
@@ -218,7 +207,7 @@ export default function EquipmentScreen() {
           </Pressable>
         )}
         ListEmptyComponent={() =>
-          !loading && !error ? (
+          !isLoading && !isError ? (
             <Text style={styles.message}>
               No se encontraron equipos.
             </Text>
@@ -378,3 +367,5 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 });
+
+
